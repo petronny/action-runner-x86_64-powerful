@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 
-cd ~/arch4edu
+cd ${GITHUB_WORKSPACE}/repo
 
 for i in $(find . -type f -name '*.pkg.tar.zst')
 do
@@ -12,5 +12,3 @@ do
 		mv $dirname/$filename $dirname/$(echo $filename | sed 's/:/COLON/g')
 	fi
 done
-
-clean-up.sh

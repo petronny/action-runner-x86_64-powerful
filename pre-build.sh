@@ -1,10 +1,9 @@
 #!/bin/sh
 set -ex
 
-cp -r ${GITHUB_WORKSPACE}/arch4edu ~
 
-cd ~/arch4edu
+cd ${GITHUB_WORKSPACE}/repo
 git config user.email "calil@jingbei.li"
 git config user.name "calil"
 
-chown -R pkgbuild:root ~
+configure-arch4edu.sh

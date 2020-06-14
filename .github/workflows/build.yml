@@ -1,0 +1,72 @@
+name: build
+
+on:
+  repository_dispatch:
+
+jobs:
+
+  build:
+    runs-on: self-hosted
+
+    steps:
+
+      - uses: actions/checkout@master
+        with:
+          path: action-tools
+
+      - uses: actions/checkout@master
+        with:
+          repository: petronny/lilac
+          path: lilac
+
+      - name: Initialize
+        id: initialization
+        run: ${GITHUB_WORKSPACE}/action-tools/initialize.sh
+
+      - uses: actions/checkout@master
+        with:
+          repository: ${{ secrets.REPO }}
+          path: repo
+
+      - run: pre-build.sh
+        env:
+          - GIT_COMMIT_NAME: ${{ secrets.GIT_COMMIT_NAME }}
+          - GIT_COMMIT_EMAIL: ${{ secrets.GIT_COMMIT_EMAIL }}
+
+      - name: Build the package with lilac
+        env:
+          TOKEN: ${{ secrets.LILAC_GITHUB_TOKEN }}
+        run: |
+          cd ${GITHUB_WORKSPACE}/repo/${{ steps.initialization.outputs.pkgbase }}
+          ls -al
+          set -o pipefail
+          PYTHONPATH=${GITHUB_WORKSPACE}/lilac:${GITHUB_WORKSPACE}/lilac/vendor:${GITHUB_WORKSPACE}/action-tools ./lilac.py action | tee ~/build.log
+          [ ${PIPESTATUS[0]} -eq 0 ] && git show > ~/commit.patch
+
+      - run: post-build.sh
+
+      - name: Upload workflow id
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.initialization.outputs.pkgbase }}.${{ steps.initialization.outputs.uuid }}
+          path: '~/workflow_id'
+
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.initialization.outputs.pkgbase }}
+          path: ${{ steps.initialization.outputs.home }}/arch4edu/${{ steps.initialization.outputs.pkgbase }}/*.pkg.tar.zst
+
+      - name: Upload commit patch
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.initialization.outputs.pkgbase }}.patch
+          path: '~/commit.patch'
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: ${{ steps.initialization.outputs.pkgbase }}.log
+          path: '~/build.log'

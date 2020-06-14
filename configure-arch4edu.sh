@@ -1,24 +1,18 @@
 #!/bin/sh
 
-mkdir -p ~/pacman/arch4edu/db
-cd ~/pacman/arch4edu
+mkdir -p ${GITHUB_WORKSPACE}/pacman/arch4edu/db
+cd ${GITHUB_WORKSPACE}/pacman/arch4edu
 
 git clone https://github.com/arch4edu/mirrorlist
-git clone https://github.com/arch4edu/arch4edu-keyring keyring
 
-cp keyring/* /usr/share/pacman/keyrings/
+fakeroot pacman-key --gpgdir gnupg --init
+fakeroot pacman-key --gpgdir gnupg --recv-keys 7931B6D628C8D3BA
+fakeroot pacman-key --gpgdir gnupg --finger 7931B6D628C8D3BA
+fakeroot pacman-key --gpgdir gnupg --lsign-key 7931B6D628C8D3BA
 
-pacman-key --gpgdir gnupg --init
-pacman-key --gpgdir gnupg --populate arch4edu
-
-sed \
-	-e '/^Include/d' \
-	-e '/^\[core\]/d' \
-	-e '/^\[extra\]/d' \
-	-e '/^\[community\]/d' \
-	-e '/^\[multilib\]/d' \
-	/etc/pacman.conf > pacman.conf
+echo [options] > pacman.conf
+pacman-conf | grep '^Architecture' >> pacman.conf
 echo [arch4edu] >> pacman.conf
 sed 's/#//' mirrorlist/mirrorlist.arch4edu >> pacman.conf
 
-pacman -Sy --config pacman.conf --dbpath db
+fakeroot pacman -Sy --config pacman.conf --dbpath db --noprogressbar
