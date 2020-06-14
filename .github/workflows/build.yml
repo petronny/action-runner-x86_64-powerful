@@ -30,8 +30,8 @@ jobs:
 
       - run: pre-build.sh
         env:
-          - GIT_COMMIT_NAME: ${{ secrets.GIT_COMMIT_NAME }}
-          - GIT_COMMIT_EMAIL: ${{ secrets.GIT_COMMIT_EMAIL }}
+          GIT_COMMIT_NAME: ${{ secrets.GIT_COMMIT_NAME }}
+          GIT_COMMIT_EMAIL: ${{ secrets.GIT_COMMIT_EMAIL }}
 
       - name: Build the package with lilac
         env:
