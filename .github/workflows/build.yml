@@ -40,8 +40,8 @@ jobs:
           cd ${GITHUB_WORKSPACE}/repo/${{ steps.initialization.outputs.pkgbase }}
           ls -al
           set -o pipefail
-          PYTHONPATH=${GITHUB_WORKSPACE}/lilac:${GITHUB_WORKSPACE}/lilac/vendor:${GITHUB_WORKSPACE}/action-tools ./lilac.py action | tee ~/build.log
-          [ ${PIPESTATUS[0]} -eq 0 ] && git show > ~/commit.patch
+          PYTHONPATH=${GITHUB_WORKSPACE}/lilac:${GITHUB_WORKSPACE}/lilac/vendor:${GITHUB_WORKSPACE}/action-tools ./lilac.py action | tee ${GITHUB_WORKSPACE}/build.log
+          [ ${PIPESTATUS[0]} -eq 0 ] && git show > ${GITHUB_WORKSPACE}/commit.patch
 
       - run: post-build.sh
 
@@ -50,23 +50,23 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.initialization.outputs.pkgbase }}.${{ steps.initialization.outputs.uuid }}
-          path: '~/workflow_id'
+          path: ${{ github.workspace }}/workflow_id
 
       - name: Upload package
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.initialization.outputs.pkgbase }}
-          path: ${{ steps.initialization.outputs.home }}/arch4edu/${{ steps.initialization.outputs.pkgbase }}/*.pkg.tar.zst
+          path: ${{ github.workspace }}/repo/${{ steps.initialization.outputs.pkgbase }}/*.pkg.tar.zst
 
       - name: Upload commit patch
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.initialization.outputs.pkgbase }}.patch
-          path: '~/commit.patch'
+          path: ${{ github.workspace }}/commit.patch
 
       - name: Upload build log
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
           name: ${{ steps.initialization.outputs.pkgbase }}.log
-          path: '~/build.log'
+          path: ${{ github.workspace }}/build.log
